@@ -1,0 +1,4 @@
+ ------TOTAL DE PAGAMENTOS REALIZADOS POR TRIMESTRE POR ANO
+SELECT COUNT(DISTINCT FatoFaturamento.PagamentoID) AS Count, DimTempo.TRIMESTRE, DimTempo.ANO FROM FatoFaturamento, DimTempo
+WHERE FatoFaturamento.PagamentoID > 0 AND FatoFaturamento.TempoID = DimTempo.IDDATA
+GROUP BY DimTempo.TRIMESTRE, DimTempo.ANO
