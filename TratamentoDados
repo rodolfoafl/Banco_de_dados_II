@@ -1,0 +1,125 @@
+use Chinook
+
+CREATE DATABASE Chinook_OLAP
+use Chinook_OLAP
+
+
+ CREATE TABLE DimCliente (
+	ClienteID INT PRIMARY KEY,
+	ClienteNomeCompleto VARCHAR(100),
+ )
+
+
+
+ CREATE TABLE DimPedido (
+	PedidoID INT PRIMARY KEY,
+	PedidoData DATE,
+	ClienteID INT
+ )
+
+
+
+
+ CREATE TABLE DimMusica (
+ MusicaID INT PRIMARY KEY,
+ MusicaNome NVARCHAR(100),
+ MusicaGenero NVARCHAR(120),
+  MusicaAlbum NVARCHAR(160),
+   MusicaArtista NVARCHAR(120)
+ )
+ 
+  alter TABLE DimMusica
+	alter column MusicaNome NVARCHAR(200)  
+ 
+    alter TABLE DimMusica
+	alter column MusicaGenero NVARCHAR(120)  
+  
+    alter TABLE DimMusica
+	alter column MusicaAlbum NVARCHAR(160)
+  
+    alter TABLE DimMusica
+	alter column MusicaArtista NVARCHAR(120)
+
+
+
+  CREATE TABLE DimPedidoItem (
+ PedidoItemID INT,
+ PedidoID INT,
+ MusicaID INT
+ )
+
+
+ CREATE TABLE DimTempo (
+IDDATA INT PRIMARY KEY,
+DATACOMPLETA DATETIME NOT NULL,
+ANO INT NOT NULL,
+MES INT NOT NULL,
+DIA INT NOT NULL,
+SEMESTRE INT NOT NULL,
+TRIMESTRE INT NOT NULL,
+BIMESTRE INT NOT NULL,
+DIADASEMANA VARCHAR(20) NOT NULL
+)
+
+
+CREATE TABLE DimLocal (
+IDLOCAL INT PRIMARY KEY,
+CIDADE VARCHAR(50),
+ESTADO VARCHAR(50),
+PAIS VARCHAR(50),
+)
+
+
+CREATE TABLE FatoVenda (
+ ClienteID INT,
+ PedidoID INT,
+ MusicaID INT,
+ TotalVenda decimal(10,2),
+ TempoID INT,
+ LocalID INT
+ )
+
+
+  ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimCliente
+ FOREIGN KEY(ClienteID) REFERENCES DimCliente (ClienteID)
+
+ ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimPedido
+ FOREIGN KEY(PedidoID) REFERENCES DimPedido (PedidoID)
+ 
+ ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimMusica
+ FOREIGN KEY(MusicaID) REFERENCES DimMusica (MusicaID)
+
+
+
+  INSERT INTO DimCliente (ClienteID, ClienteNomeCompleto)
+ SELECT CustomerId, CONCAT(FirstName, ' ' , LastName) FROM Chinook.dbo.Customer
+
+ select * from DimCliente
+  select * from Chinook.dbo.Customer
+
+
+
+   INSERT INTO DimPedido (PedidoID, PedidoData, ClienteID)
+ SELECT InvoiceId, InvoiceDate, CustomerId FROM Chinook.dbo.Invoice
+
+ SELECT * FROM Chinook.dbo.Invoice
+ SELECT * FROM DimPedido
+ 
+
+
+  INSERT INTO DimMusica(MusicaID, MusicaNome, MusicaGenero, MusicaAlbum, MusicaArtista)
+ SELECT t.TrackId, T.Name, G.Name, AL.Title, AR.Name
+  FROM Chinook.dbo.Track as T, Chinook.dbo.Genre as G, Chinook.dbo.Album as AL, Chinook.dbo.Artist as AR
+  WHERE t.GenreId = G.GenreId AND T.AlbumId = AL.AlbumId AND AL.ArtistId = AR.ArtistId 
+
+ select * from Chinook.dbo.Track
+ select * from DimMusica
+ 
+
+
+   INSERT INTO DimPedidoItem (PedidoItemID, PedidoID, MusicaID)
+ SELECT InvoiceLineId, InvoiceId, TrackId FROM Chinook.dbo.InvoiceLine
+
+  select * from Chinook.dbo.InvoiceLine
+   select * from DimPedidoItem
+
