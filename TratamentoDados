@@ -123,3 +123,16 @@ CREATE TABLE FatoVenda (
   select * from Chinook.dbo.InvoiceLine
    select * from DimPedidoItem
 
+
+
+INSERT INTO DimTempo(IDDATA, DATACOMPLETA, ANO, MES, DIA, SEMESTRE, TRIMESTRE, BIMESTRE, DIADASEMANA)
+SELECT DISTINCT(dbo.DATAINT(InvoiceDate)), InvoiceDate, YEAR(InvoiceDate), MONTH(InvoiceDate), DAY(InvoiceDate), dbo.SEMESTRE(InvoiceDate), DATEPART(QUARTER,InvoiceDate), dbo.Bimestre(InvoiceDate), DATENAME(dw,InvoiceDate)  FROM Chinook.dbo.Invoice
+
+select * from DimTempo
+
+
+
+INSERT INTO DimLocal(IDLOCAL, CIDADE, ESTADO, PAIS)
+SELECT DISTINCT(dbo.DATAINT(InvoiceDate)), BillingCity, BillingState, BillingCountry  FROM Chinook.dbo.Invoice
+
+select * from DimLocal
