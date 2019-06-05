@@ -132,7 +132,14 @@ select * from DimTempo
 
 
 
-INSERT INTO DimLocal(IDLOCAL, CIDADE, ESTADO, PAIS)
-SELECT DISTINCT(dbo.DATAINT(InvoiceDate)), BillingCity, BillingState, BillingCountry  FROM Chinook.dbo.Invoice
+CREATE TABLE DimLocal (
+IDLOCAL INT PRIMARY KEY IDENTITY NOT NULL,
+CIDADE VARCHAR(50),
+ESTADO VARCHAR(50),
+PAIS VARCHAR(50),
+)
 
-select * from DimLocal
+INSERT INTO DimLocal(CIDADE, ESTADO, PAIS)
+SELECT DISTINCT BillingCity, BillingState, BillingCountry FROM Chinook.dbo.Invoice
+
+select * from DimLocal 
