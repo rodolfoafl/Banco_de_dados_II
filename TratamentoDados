@@ -16,6 +16,12 @@ use Chinook_OLAP
 	PedidoData DATE,
 	ClienteID INT
  )
+ 
+ ALTER TABLE DimPedido
+  ADD Total DECIMAL(8,2)
+
+   INSERT INTO DimPedido (PedidoID, PedidoData, ClienteID, Total)
+ SELECT InvoiceId, InvoiceDate, CustomerId, Total FROM Chinook.dbo.Invoice
 
 
 
