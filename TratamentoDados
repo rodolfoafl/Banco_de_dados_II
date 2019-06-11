@@ -17,6 +17,9 @@ use Chinook_OLAP
 	ClienteID INT
  )
  
+ ALTER TABLE DimPedido
+  ADD Total DECIMAL(8,2)
+ 
 
  CREATE TABLE DimMusica (
  MusicaID INT PRIMARY KEY,
