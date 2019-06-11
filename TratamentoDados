@@ -16,10 +16,6 @@ use Chinook_OLAP
 	PedidoData DATE,
 	ClienteID INT
  )
- 
- ALTER TABLE DimPedido
-  ADD Total DECIMAL(8,2)
- 
 
  CREATE TABLE DimMusica (
  MusicaID INT PRIMARY KEY,
@@ -144,3 +140,18 @@ INSERT INTO DimLocal(CIDADE, ESTADO, PAIS)
 SELECT DISTINCT BillingCity, BillingState, BillingCountry FROM Chinook.dbo.Invoice
 
 select * from DimLocal 
+
+
+ /*INSERT AINDA SEM LOCAL...*/
+ INSERT INTO FatoVenda(ClienteID, PedidoID, MusicaID, TotalVenda, TempoID)
+ SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, dbo.DATAINT(PD.PedidoData)
+ FROM DimPedido PD
+ LEFT JOIN DimCliente CL
+ ON PD.ClienteID = CL.ClienteID
+ LEFT JOIN DimPedidoItem PedItem
+ ON PD.PedidoID = PedItem.PedidoID
+ LEFT JOIN DimMusica MU
+ ON PedItem.MusicaID = MU.MusicaID
+ LEFT JOIN Chinook.dbo.Invoice AS PG
+ ON PG.InvoiceId = PD.PedidoID
+ GROUP BY CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, PD.PedidoData
