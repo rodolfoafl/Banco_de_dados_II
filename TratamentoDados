@@ -142,9 +142,9 @@ SELECT DISTINCT BillingCity, BillingState, BillingCountry FROM Chinook.dbo.Invoi
 select * from DimLocal 
 
 
- /*INSERT AINDA SEM LOCAL...*/
- INSERT INTO FatoVenda(ClienteID, PedidoID, MusicaID, TotalVenda, TempoID)
- SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, dbo.DATAINT(PD.PedidoData)
+ /*INSERT AGORA COM LOCAL*/
+ INSERT INTO FatoVenda(ClienteID, PedidoID, MusicaID, TotalVenda, TempoID, LocalID)
+ SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, dbo.DATAINT(PD.PedidoData), L.IDLOCAL 
  FROM DimPedido PD
  LEFT JOIN DimCliente CL
  ON PD.ClienteID = CL.ClienteID
@@ -154,4 +154,7 @@ select * from DimLocal
  ON PedItem.MusicaID = MU.MusicaID
  LEFT JOIN Chinook.dbo.Invoice AS PG
  ON PG.InvoiceId = PD.PedidoID
- GROUP BY CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, PD.PedidoData
+ LEFT JOIN DimLocal AS L
+ ON (L.CIDADE = PG.BillingCity
+ AND L.PAIS = PG.BillingCountry)
+GROUP BY CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, PD.PedidoData, L.IDLOCAL
