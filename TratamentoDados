@@ -1,51 +1,36 @@
-use Chinook
-
 CREATE DATABASE Chinook_OLAP
 use Chinook_OLAP
 
-
- CREATE TABLE DimCliente (
+/*CRIANDO DIMENSÃO CLIENTE*/
+CREATE TABLE DimCliente (
 	ClienteID INT PRIMARY KEY,
 	ClienteNomeCompleto VARCHAR(100),
  )
 
-
-
+ /*CRIANDO DIMENSÃO PEDIDO*/
  CREATE TABLE DimPedido (
 	PedidoID INT PRIMARY KEY,
 	PedidoData DATE,
 	ClienteID INT
  )
 
+ /*CRIANDO DIMENSÃO MUSICA*/
  CREATE TABLE DimMusica (
  MusicaID INT PRIMARY KEY,
- MusicaNome NVARCHAR(100),
+ MusicaNome NVARCHAR(200),
  MusicaGenero NVARCHAR(120),
   MusicaAlbum NVARCHAR(160),
    MusicaArtista NVARCHAR(120)
  )
- 
-  alter TABLE DimMusica
-	alter column MusicaNome NVARCHAR(200)  
- 
-    alter TABLE DimMusica
-	alter column MusicaGenero NVARCHAR(120)  
-  
-    alter TABLE DimMusica
-	alter column MusicaAlbum NVARCHAR(160)
-  
-    alter TABLE DimMusica
-	alter column MusicaArtista NVARCHAR(120)
 
-
-
-  CREATE TABLE DimPedidoItem (
+ /*CRIANDO DIMENSÃO PEDIDOITEM*/
+ CREATE TABLE DimPedidoItem (
  PedidoItemID INT,
  PedidoID INT,
  MusicaID INT
  )
 
-
+ /*CRIANDO DIMENSÃO TEMPO*/
  CREATE TABLE DimTempo (
 IDDATA INT PRIMARY KEY,
 DATACOMPLETA DATETIME NOT NULL,
@@ -58,15 +43,15 @@ BIMESTRE INT NOT NULL,
 DIADASEMANA VARCHAR(20) NOT NULL
 )
 
-
+ /*CRIANDO DIMENSÃO LOCAL*/
 CREATE TABLE DimLocal (
-IDLOCAL INT PRIMARY KEY,
+IDLOCAL INT PRIMARY KEY IDENTITY NOT NULL,
 CIDADE VARCHAR(50),
 ESTADO VARCHAR(50),
 PAIS VARCHAR(50),
 )
 
-
+ /*CRIANDO FATO VENDA*/
 CREATE TABLE FatoVenda (
  ClienteID INT,
  PedidoID INT,
@@ -75,9 +60,9 @@ CREATE TABLE FatoVenda (
  TempoID INT,
  LocalID INT
  )
-
-
-  ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimCliente
+ 
+ /*ADICIONANDO CONSTRAINTS*/
+   ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimCliente
  FOREIGN KEY(ClienteID) REFERENCES DimCliente (ClienteID)
 
  ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimPedido
@@ -86,65 +71,41 @@ CREATE TABLE FatoVenda (
  ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimMusica
  FOREIGN KEY(MusicaID) REFERENCES DimMusica (MusicaID)
 
+  ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimTempo
+ FOREIGN KEY(TempoID) REFERENCES DimTempo (IDDATA)
 
+  ALTER TABLE FatoVenda  WITH CHECK ADD  CONSTRAINT FK_FatoVenda_DimLocal
+ FOREIGN KEY(LocalID) REFERENCES DimLocal (IDLOCAL)
 
-  INSERT INTO DimCliente (ClienteID, ClienteNomeCompleto)
+/*INSERINDO REGISTROS NA DIMESÃO CLIENTE*/
+   INSERT INTO DimCliente (ClienteID, ClienteNomeCompleto)
  SELECT CustomerId, CONCAT(FirstName, ' ' , LastName) FROM Chinook.dbo.Customer
 
- select * from DimCliente
-  select * from Chinook.dbo.Customer
-
-
-
-   INSERT INTO DimPedido (PedidoID, PedidoData, ClienteID)
+ /*INSERINDO REGISTROS NA DIMESÃO PEDIDO*/
+ INSERT INTO DimPedido (PedidoID, PedidoData, ClienteID)
  SELECT InvoiceId, InvoiceDate, CustomerId FROM Chinook.dbo.Invoice
 
- SELECT * FROM Chinook.dbo.Invoice
- SELECT * FROM DimPedido
- 
-
-
-  INSERT INTO DimMusica(MusicaID, MusicaNome, MusicaGenero, MusicaAlbum, MusicaArtista)
+ /*INSERINDO REGISTROS NA DIMESÃO MUSICA*/
+ INSERT INTO DimMusica(MusicaID, MusicaNome, MusicaGenero, MusicaAlbum, MusicaArtista)
  SELECT t.TrackId, T.Name, G.Name, AL.Title, AR.Name
   FROM Chinook.dbo.Track as T, Chinook.dbo.Genre as G, Chinook.dbo.Album as AL, Chinook.dbo.Artist as AR
   WHERE t.GenreId = G.GenreId AND T.AlbumId = AL.AlbumId AND AL.ArtistId = AR.ArtistId 
 
- select * from Chinook.dbo.Track
- select * from DimMusica
- 
-
-
-   INSERT INTO DimPedidoItem (PedidoItemID, PedidoID, MusicaID)
+/*INSERINDO REGISTROS NA DIMESÃO PEDIDOITEM*/
+ INSERT INTO DimPedidoItem (PedidoItemID, PedidoID, MusicaID)
  SELECT InvoiceLineId, InvoiceId, TrackId FROM Chinook.dbo.InvoiceLine
 
-  select * from Chinook.dbo.InvoiceLine
-   select * from DimPedidoItem
-
-
-
+ /*INSERINDO REGISTROS NA DIMESÃO TEMPO*/
 INSERT INTO DimTempo(IDDATA, DATACOMPLETA, ANO, MES, DIA, SEMESTRE, TRIMESTRE, BIMESTRE, DIADASEMANA)
-SELECT DISTINCT(dbo.DATAINT(InvoiceDate)), InvoiceDate, YEAR(InvoiceDate), MONTH(InvoiceDate), DAY(InvoiceDate), dbo.SEMESTRE(InvoiceDate), DATEPART(QUARTER,InvoiceDate), dbo.Bimestre(InvoiceDate), DATENAME(dw,InvoiceDate)  FROM Chinook.dbo.Invoice
+SELECT DISTINCT(Chinook.dbo.DATAINT(InvoiceDate)), InvoiceDate, YEAR(InvoiceDate), MONTH(InvoiceDate), DAY(InvoiceDate), Chinook.dbo.SEMESTRE(InvoiceDate), DATEPART(QUARTER,InvoiceDate), Chinook.dbo.Bimestre(InvoiceDate), DATENAME(dw,InvoiceDate)  FROM Chinook.dbo.Invoice
 
-select * from DimTempo
-
-
-
-CREATE TABLE DimLocal (
-IDLOCAL INT PRIMARY KEY IDENTITY NOT NULL,
-CIDADE VARCHAR(50),
-ESTADO VARCHAR(50),
-PAIS VARCHAR(50),
-)
-
+/*INSERINDO REGISTROS NA DIMESÃO LOCAL*/
 INSERT INTO DimLocal(CIDADE, ESTADO, PAIS)
 SELECT DISTINCT BillingCity, BillingState, BillingCountry FROM Chinook.dbo.Invoice
 
-select * from DimLocal 
-
-
- /*INSERT AGORA COM LOCAL*/
+/*INSERINDO REGISTROS NO FATO VENDA*/
  INSERT INTO FatoVenda(ClienteID, PedidoID, MusicaID, TotalVenda, TempoID, LocalID)
- SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, dbo.DATAINT(PD.PedidoData), L.IDLOCAL 
+ SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, Chinook.dbo.DATAINT(PD.PedidoData), L.IDLOCAL 
  FROM DimPedido PD
  LEFT JOIN DimCliente CL
  ON PD.ClienteID = CL.ClienteID
@@ -158,3 +119,4 @@ select * from DimLocal
  ON (L.CIDADE = PG.BillingCity
  AND L.PAIS = PG.BillingCountry)
 GROUP BY CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, PD.PedidoData, L.IDLOCAL
+
