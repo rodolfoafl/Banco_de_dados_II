@@ -1,6 +1,47 @@
 CREATE DATABASE Chinook_OLAP
 use Chinook_OLAP
 
+ -----Função para converter DATE para DATETIME
+ CREATE FUNCTION DATAINT
+ (@DATA DATETIME)
+ RETURNS INT
+ AS BEGIN
+	DECLARE @DATA1 INT
+	SELECT @DATA1 = CONVERT(INT, @DATA)
+	RETURN @DATA1;
+ END
+
+-----Função para Semestre
+
+CREATE FUNCTION SEMESTRE
+(@DataSemestre DateTime)
+RETURNS INT
+AS BEGIN
+	IF DatePart(MONTH, @DataSemestre) <= 6
+        Return 1
+    ELSE
+        Return 2
+Return -1
+END
+
+----Função para Bimestre
+
+CREATE FUNCTION BIMESTRE
+(@DataBimestre DateTime)
+RETURNS INT
+AS BEGIN
+	RETURN CASE
+		WHEN DATEPART(MONTH,@DataBimestre) = 1 OR DATEPART(MONTH,@DataBimestre) = 2 then 1
+		WHEN DATEPART(MONTH,@DataBimestre) = 3 OR DATEPART(MONTH,@DataBimestre) = 4 then 2
+		WHEN DATEPART(MONTH,@DataBimestre) = 5 OR DATEPART(MONTH,@DataBimestre) = 6 then 3
+		WHEN DATEPART(MONTH,@DataBimestre) = 7 OR DATEPART(MONTH,@DataBimestre) = 8 then 4
+		WHEN DATEPART(MONTH,@DataBimestre) = 9 OR DATEPART(MONTH,@DataBimestre) = 10 then 5
+		WHEN DATEPART(MONTH,@DataBimestre) = 11 OR DATEPART(MONTH,@DataBimestre) = 12 then 6
+	END
+	RETURN -1
+END
+/*----------------------------------------------------------------------------------------*/
+
 /*CRIANDO DIMENSÃO CLIENTE*/
 CREATE TABLE DimCliente (
 	ClienteID INT PRIMARY KEY,
@@ -97,7 +138,7 @@ CREATE TABLE FatoVenda (
 
  /*INSERINDO REGISTROS NA DIMESÃO TEMPO*/
 INSERT INTO DimTempo(IDDATA, DATACOMPLETA, ANO, MES, DIA, SEMESTRE, TRIMESTRE, BIMESTRE, DIADASEMANA)
-SELECT DISTINCT(Chinook.dbo.DATAINT(InvoiceDate)), InvoiceDate, YEAR(InvoiceDate), MONTH(InvoiceDate), DAY(InvoiceDate), Chinook.dbo.SEMESTRE(InvoiceDate), DATEPART(QUARTER,InvoiceDate), Chinook.dbo.Bimestre(InvoiceDate), DATENAME(dw,InvoiceDate)  FROM Chinook.dbo.Invoice
+SELECT DISTINCT(Chinook_OLAP.dbo.DATAINT(InvoiceDate)), InvoiceDate, YEAR(InvoiceDate), MONTH(InvoiceDate), DAY(InvoiceDate), Chinook_OLAP.dbo.SEMESTRE(InvoiceDate), DATEPART(QUARTER,InvoiceDate), Chinook_OLAP.dbo.Bimestre(InvoiceDate), DATENAME(dw,InvoiceDate)  FROM Chinook.dbo.Invoice
 
 /*INSERINDO REGISTROS NA DIMESÃO LOCAL*/
 INSERT INTO DimLocal(CIDADE, ESTADO, PAIS)
@@ -105,7 +146,7 @@ SELECT DISTINCT BillingCity, BillingState, BillingCountry FROM Chinook.dbo.Invoi
 
 /*INSERINDO REGISTROS NO FATO VENDA*/
  INSERT INTO FatoVenda(ClienteID, PedidoID, MusicaID, TotalVenda, TempoID, LocalID)
- SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, Chinook.dbo.DATAINT(PD.PedidoData), L.IDLOCAL 
+ SELECT CL.ClienteID, PD.PedidoID, MU.MusicaID, PG.Total, Chinook_OLAP.dbo.DATAINT(PD.PedidoData), L.IDLOCAL 
  FROM DimPedido PD
  LEFT JOIN DimCliente CL
  ON PD.ClienteID = CL.ClienteID
